@@ -1,0 +1,45 @@
+---
+title: "ST 558 Project 2"
+author: "Lee Bennett"
+format: html
+editor: visual
+---
+
+```{r}
+#| include: false
+
+library(tidyverse)
+library(readxl)
+```
+
+## Introduction
+
+In this notebook, we'll do some static exploratory analysis of the US superstore sales data (<https://www.kaggle.com/datasets/juhi1994/superstore/data>) before creating a dashboard in R Shiny for interactive analysis. The data was downloaded as the file "US Superstore data.xls" and we'll load it into R as a tibble:
+
+```{r}
+sales_raw<-read_excel("US Superstore data.xls") |> as_tibble()
+```
+
+## Data Exploration
+
+We'll start the exploratory analysis by creating a series of contingency tables, beginning with one-way tables for the region and segment of sales, followed by a two-way table for those same variables:
+
+```{r}
+tab1 <- table(sales_raw$Region)
+tab1
+
+tab2 <- table(sales_raw$Segment)
+tab2
+
+tab3 <- table(sales_raw$Region,sales_raw$Segment)
+tab3
+```
+
+Next, let's summarize the gross sales and profit variables by region and segment:
+
+```{r}
+sales_raw |> group_by(Region) |> summarize(across(c(Sales,Profit),list("mean"=mean,"median"=median,"sd"=sd),.names="{.fn}_{.col}"))
+
+sales_raw |> group_by(Segment) |> summarize(across(c(Sales,Profit),list("mean"=mean,"median"=median,"sd"=sd),.names="{.fn}_{.col}"))
+```
+Finally, we'll create some plots to 
