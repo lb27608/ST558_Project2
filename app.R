@@ -12,19 +12,24 @@ ui <- fluidPage(
     sidebarPanel(
       h2("Choose a subset of the data:"),
       radioButtons("segment",
-                   label = h4("Segmemt"),
+                   label = h4("Market Segment"),
                    choices = levels(as_factor(sales_raw$Segment)),
                    selected = "all"
                   ),
-      radioButtons("Region",
+      radioButtons("region",
                    label = h4("Region"),
                    choices = levels(as_factor(sales_raw$Region)),
                    selected = "all"
                   ),
+      radioButtons("category",
+                   label = h4("Product Category"),
+                   choices = levels(as_factor(sales_raw$Category)),
+                   selected = "all"
+      ),
   
-      h2("Select a Sample Size"),
-      sliderInput("corr_n",
-                  label="Select a Sample Size",
+      h2("Sales Value"),
+      sliderInput("sales_val",
+                  label="Choose a ",
                   min=20, max=500,
                   value=20,step=1,
                   ticks=TRUE),

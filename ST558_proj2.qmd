@@ -10,14 +10,16 @@ editor: visual
 
 library(tidyverse)
 library(readxl)
+library(geofacet)
 ```
 
 ## Introduction
 
 In this notebook, we'll do some static exploratory analysis of the US superstore sales data (<https://www.kaggle.com/datasets/juhi1994/superstore/data>) before creating a dashboard in R Shiny for interactive analysis. The data was downloaded as the file "US Superstore data.xls" and we'll load it into R as a tibble:
 
-```{r}
-sales_raw<-read_excel("US Superstore data.xls") |> as_tibble()
+```{r, warning=FALSE}
+
+sales_raw<-read_excel("US Superstore data.xls") |> as_tibble() |> rename_with(make.names) |> mutate(OrderYear=year(Order.Date))
 ```
 
 ## Data Exploration
@@ -42,4 +44,27 @@ sales_raw |> group_by(Region) |> summarize(across(c(Sales,Profit),list("mean"=me
 
 sales_raw |> group_by(Segment) |> summarize(across(c(Sales,Profit),list("mean"=mean,"median"=median,"sd"=sd),.names="{.fn}_{.col}"))
 ```
-Finally, we'll create some plots to 
+Finally, we'll create some plots to explore this data:
+
+```{r}
+stat_s <- sales_raw |> group_by(Region,State,Segment,OrderYear) |> summarize(across(c(Sales,Profit),list("sum"=sum, "mean"=mean,"median"=median,"sd"=sd),.names="{.fn}_{.col}")) 
+
+#Total sales by region and segment
+graph_1 <- ggplot(stat_s, aes(x=Region, y=sum_Sales, fill=Segment)) + geom_bar(position="dodge",stat="identity") + theme(plot.title = element_text(hjust = 0.5)) + labs(x="Region", y="Total sales ($)", title="Total Sales by Region and Market Segment")
+
+#Total profit by region and segment
+graph_2 <- ggplot(stat_s, aes(x=Region, y=sum_Profit, fill=Segment)) + geom_bar(position="dodge",stat="identity") + theme(plot.title = element_text(hjust = 0.5)) + labs(x="Region", y="Total profit ($)", title="Total Profit by Region and Market Segment")
+
+#Sales by Year and Region,
+graph_3 <- ggplot(stat_s, aes(x=Region, y=sum_Sales, fill=Segment)) + geom_bar(position="dodge",stat="identity") + theme(plot.title = element_text(hjust = 0.5)) + labs(x="Region", y="Total sales ($)", title="Total Sales by Region, Market Segment, and Year") + facet_wrap(~OrderYear)
+
+graph_4 <- ggplot(sales_raw, aes(x=OrderYear, y=Sales, rank, fill = Segment)) +
+  geom_col(stat="identity") +
+  facet_geo(~ State) +
+  theme_bw()
+
+print(graph_1)
+print(graph_2)
+print(graph_3)
+
+```
