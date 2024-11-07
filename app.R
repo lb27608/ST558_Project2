@@ -1,16 +1,16 @@
 library(shiny)
 library(shinyalert)
 library(tidyverse)
-
-source("helpers.R")
+library(shinydashboard)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
-  titlePanel("Superstore Sales Data"),
+  titlePanel("US Superstore Sales Data Exploration"),
+  
   sidebarLayout(
     sidebarPanel(
-      h2("Choose a subset of the data:"),
+      h3("Choose a subset of the data:"),
       radioButtons("segment",
                    label = h4("Market Segment"),
                    choices = levels(as_factor(sales_raw$Segment)),
@@ -25,117 +25,97 @@ ui <- fluidPage(
                    label = h4("Product Category"),
                    choices = levels(as_factor(sales_raw$Category)),
                    selected = "all"
-      ),
+                  ),
   
-      h2("Sales Value"),
-      sliderInput("sales_val",
-                  label="Choose a ",
-                  min=20, max=500,
-                  value=20,step=1,
-                  ticks=TRUE),
+      #Let user select a year
+      selectizeInput("year",
+                     "Choose year(s)",
+                     choices=levels(as_factor(sales_raw$OrderYear)),
+                     selected="all",multiple=TRUE
+                    ),
       
-      actionButton("get_subset","Get subset")
+      #Let user select a numeric variable (sales or profit)
+      selectizeInput("num_var",
+                     "Select sales or profit for analysis",
+                     choices=c("Sales"="Sales","Profit"="Profit")
+                    ),
+      
+      conditionalPanel(condition="input.num_var=='Sales'",
+                       sliderInput("sales_range",
+                                   label="Choose a range of sales values",
+                                   min=min(sales_raw$Sales), max=max(sales_raw$Sales),
+                                   value=20,step=10,
+                                   ticks=TRUE)          
+                   ),
+      conditionalPanel(condition="input.num_var=='Profit'",
+                       sliderInput("profit_range",
+                                   label="Choose a range of profit values",
+                                   min=min(sales_raw$Profit), max=max(sales_raw$Profit),
+                                   value=20,step=10,
+                                   ticks=TRUE)          
+                  ),
+      
+      
+      actionButton("get_subset","Subset the data")
     ),
+  
     
     mainPanel(
-      plotOutput("scatterplot"),
-      conditionalPanel("input.corr_sample",
-                       h2("Guess the correlation!"),
-                       column(6, 
-                              numericInput("corr_guess",
-                                           "",
-                                           value = 0,
-                                           min = -1, 
-                                           max = 1
-                              )
-                       ),
-                       column(6, 
-                              actionButton("corr_submit", "Check Your Guess!"))
+      tabsetPanel(
+        id="tabset",
+        tabPanel("About",
+                 img(src='dataset-cover.jpg', align = "right"),
+                 h2("About the Data"),
+                 HTML("This project creates an app to explore a set of sales data from US superstores downloaded from <a href='https://www.kaggle.com/datasets/juhi1994/superstore/data'>Kaggle</a>. 
+                  <br><br>Using the sidebar, the can subset the data by region (West, Central, South, or East), market segment (corporate, home office, or consumer), and/or product category (furniture, office supplies, or technology)
+                  The user can then choose to analyze either sales revenue or profit information for a selection of years (2014-2017).
+                  <br><br> The 'Download Data' tab will display the subsetted data and allow the user to download a copy as a CSV file.
+                  <br><br> On the 'Data Exploration' tab, the user can perform various analyses of the selected data, including
+                  <ul><li>Frequecies for categorical variables and summary statistics for sales and/or profit</li>
+                  <li>Graphical summaries of the data</li></ul>")
+                  ),
+        tabPanel("Download Data","This is where we will download the data."),
+        tabPanel("Data Exploration")
       )
+    
     )
   )
 )
 
-my_sample <- readRDS("my_sample_temp.rds")
+sales_raw <- readRDS("superstore_data.rds")
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
-    
-    #################################################3
-    ##Correlation tab
-    #Create a reactiveValues() object called sample_corr
-    #this object should have two elements, corr_data and corr_truth
-    #both should be set to null to start with!
-    sample_corr <- reactiveValues(corr_data=NULL, corr_truth=NULL)
-    
-    #update input boxes so they can't choose the same variable
-    observeEvent(c(input$corr_x, input$corr_y), {
-      corr_x <- input$corr_x
-      corr_y <- input$corr_y
-      choices <- numeric_vars
-      if (corr_x == corr_y){
-        choices <- choices[-which(choices == corr_x)]
-        updateSelectizeInput(session,
-                             "corr_y",
-                             choices = choices)#we'll cover this kind of thing shortly!
-        }
-    })
-    
-    #Use an observeEvent() to look for the action button (corr_sample)
-    
-    observeEvent(input$corr_sample, {
-      if(input$hhl_corr == "all"){
-        hhl_sub <- HHLvals
-      } else if(input$hhl_corr == "english"){
-        hhl_sub <- HHLvals["1"]
-      } else if(input$hhl_corr == "spanish"){
-        hhl_sub <- HHLvals["2"]
+    #Use an observeEvent() to look for the action button (get_subset)
+    observeEvent(input$get_subset, {
+      if(input$segment == "all"){
+        seg_sub <- as.vector(levels(as.factor(sales_raw$Segment)))
       } else {
-        hhl_sub <- HHLvals[c("0", "3", "4", "5")]
+        seg_sub <- input$Segment
       }
       
-      if(input$fs_corr == "all"){
-        fs_sub <- FSvals
-      } else if(input$fs_corr == "yes"){
-        fs_sub <- FSvals["1"]
+      if(input$region == "all"){
+        reg_sub <- as.vector(levels(as.factor(sales_raw$Region)))
       } else {
-        fs_sub <- FSvals["2"]
+        reg_sub <- input$Region
       }
       
-      if(input$schl_corr == "all"){
-        schl_sub <- SCHLvals
-      } else if(input$schl_corr == "no_hs"){
-        schl_sub <- SCHLvals[as.character(0:15)]
-      } else if(input$schl_corr == "hs"){
-        schl_sub <- SCHLvals[as.character(16:19)]
+      if(input$cat == "all"){
+        cat_sub <- as.vector(levels(as.factor(sales_raw$Category)))
       } else {
-        schl_sub <- SCHLvals[as.character(20:24)]
+        cat_sub <- input$Category
       }
     
-      corr_vars <- c(input$corr_x, input$corr_y)
-      
-      subsetted_data <- my_sample |>
-        filter(#cat vars first
-          HHLfac %in% hhl_sub,
-          FSfac %in% fs_sub,
-          SCHLfac %in% schl_sub
-        ) %>% #make sure numeric variables are in appropriate range, must use %>% here for {} to work
-        {if("WKHP" %in% corr_vars) filter(., WKHP > 0) else .} %>%
-        {if("VALP" %in% corr_vars) filter(., !is.na(VALP)) else .} %>%
-        {if("TAXAMT" %in% corr_vars) filter(., !is.na(TAXAMT)) else .} %>%
-        {if("GRPIP" %in% corr_vars) filter(., GRPIP > 0) else .} %>%
-        {if("GASP" %in% corr_vars) filter(., GASP > 0) else .} %>%
-        {if("ELEP" %in% corr_vars) filter(., ELEP > 0) else .} %>%
-        {if("WATP" %in% corr_vars) filter(., WATP > 0) else .} %>%
-        {if("PINCP" %in% corr_vars) filter(., AGEP > 18) else .} %>%
-        {if("JWMNP" %in% corr_vars) filter(., !is.na(JWMNP)) else .}
+      #Subset data based on user selections
+      subsetted_data <- sales_raw |>
+        filter(
+          Region %in% reg_sub,
+          Segment %in% seg_sub,
+          Category %in% cat_sub
+        ) |> group_by(Region,State,Segment,OrderYear) |> summarize(across(c(Sales,Profit),list("sum"=sum, "mean"=mean,"median"=median,"sd"=sd),.names="{.fn}_{.col}")) 
     
       
-      index <- sample(1:nrow(subsetted_data), 
-                      size = input$corr_n, 
-                      replace = TRUE, 
-                      prob = subsetted_data$PWGTP/sum(subsetted_data$PWGTP))
       
       #Update the sample_corr reactive value object
       #the corr_data argument should be updated to be the subsetted_data[index,]
@@ -143,42 +123,15 @@ server <- function(input, output, session) {
       #the two variables selected: 
       #cor(sample_corr$corr_data |> select(corr_vars))[1,2]
       
-      sample_corr$corr_data <- subsetted_data[index,]
-      sample_corr$corr_truth <- cor(sample_corr$corr_data |> select(corr_vars))[1,2]
+     
     })
     
     #Create a renderPlot() object to output a scatter plot
     #Use the code below to validate that data exists,
     #(you'll need to install the shinyalert package if you don't have it)
     #and then create the appropriate scatter plot
-    output$scatterplot <- renderPlot({
-      validate(
-        need(!is.null(sample_corr$corr_data), "Please select your variables, subset, and click the 'Get a Sample!' button.")
-      ) #this is a useful function to add as a placeholder until data is generated!
-      ggplot(sample_corr$corr_data, aes_string(x = isolate(input$corr_x), y = isolate(input$corr_y))) +
-        geom_point() 
-    })
     
-    #Use this code for the correlation guessing game!
-    observeEvent(input$corr_submit, {
-      close <- abs(input$corr_guess - sample_corr$corr_truth) <= .05
-      if(close){
-        shinyalert(title = "Nicely done!",
-                   paste0("The sample correlation is ", 
-                          round(sample_corr$corr_truth, 4), 
-                          "."),
-                   type = "success"
-        )
-      } else {
-        if(input$corr_guess > sample_corr$corr_truth){
-          shinyalert(title = "Try again!",
-                     "Try guessing a lower value.")
-        } else {
-          shinyalert(title = "Try again!",
-                     "Try guessing a higher value.")
-        }
-      }
-    })
+    
 }
 
 

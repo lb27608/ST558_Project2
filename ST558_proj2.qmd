@@ -59,12 +59,10 @@ graph_2 <- ggplot(stat_s, aes(x=Region, y=sum_Profit, fill=Segment)) + geom_bar(
 graph_3 <- ggplot(stat_s, aes(x=Region, y=sum_Sales, fill=Segment)) + geom_bar(position="dodge",stat="identity") + theme(plot.title = element_text(hjust = 0.5)) + labs(x="Region", y="Total sales ($)", title="Total Sales by Region, Market Segment, and Year") + facet_wrap(~OrderYear)
 
 graph_4 <- ggplot(sales_raw, aes(x=OrderYear, y=Sales, rank, fill = Segment)) +
-  geom_col(stat="identity") +
-  facet_geo(~ State) +
-  theme_bw()
+  geom_bar(stat="identity") + facet_geo(~ State) + theme_bw()
 
 print(graph_1)
 print(graph_2)
 print(graph_3)
-
+print(graph_4)
 ```
