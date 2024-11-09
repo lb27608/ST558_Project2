@@ -146,6 +146,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>sales_raw<span class="ot">&lt;-</span><span class="fu">read_excel</span>(<span class="st">"US Superstore data.xls"</span>) <span class="sc">|&gt;</span> <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span> <span class="fu">rename_with</span>(make.names) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">OrderYear=</span><span class="fu">year</span>(Order.Date))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>This processed data has been saved as an RData file called <code>superstore_data.rds</code> for use in the app.</p>
 </section>
 <section id="data-exploration" class="level2">
 <h2 class="anchored" data-anchor-id="data-exploration">Data Exploration</h2>

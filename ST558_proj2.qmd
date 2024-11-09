@@ -22,6 +22,8 @@ In this notebook, we'll do some static exploratory analysis of the US superstore
 sales_raw<-read_excel("US Superstore data.xls") |> as_tibble() |> rename_with(make.names) |> mutate(OrderYear=year(Order.Date))
 ```
 
+This processed data has been saved as an RData file called `superstore_data.rds` for use in the app.
+
 ## Data Exploration
 
 We'll start the exploratory analysis by creating a series of contingency tables, beginning with one-way tables for the region and segment of sales, followed by a two-way table for those same variables:

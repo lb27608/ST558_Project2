@@ -4,14 +4,14 @@
     "href": "ST558_proj2.html",
     "title": "ST 558 Project 2",
     "section": "",
-    "text": "In this notebook, we’ll do some static exploratory analysis of the US superstore sales data (https://www.kaggle.com/datasets/juhi1994/superstore/data) before creating a dashboard in R Shiny for interactive analysis. The data was downloaded as the file “US Superstore data.xls” and we’ll load it into R as a tibble:\n\nsales_raw&lt;-read_excel(\"US Superstore data.xls\") |&gt; as_tibble() |&gt; rename_with(make.names) |&gt; mutate(OrderYear=year(Order.Date))"
+    "text": "In this notebook, we’ll do some static exploratory analysis of the US superstore sales data (https://www.kaggle.com/datasets/juhi1994/superstore/data) before creating a dashboard in R Shiny for interactive analysis. The data was downloaded as the file “US Superstore data.xls” and we’ll load it into R as a tibble:\n\nsales_raw&lt;-read_excel(\"US Superstore data.xls\") |&gt; as_tibble() |&gt; rename_with(make.names) |&gt; mutate(OrderYear=year(Order.Date))\n\nThis processed data has been saved as an RData file called superstore_data.rds for use in the app."
   },
   {
     "objectID": "ST558_proj2.html#introduction",
     "href": "ST558_proj2.html#introduction",
     "title": "ST 558 Project 2",
     "section": "",
-    "text": "In this notebook, we’ll do some static exploratory analysis of the US superstore sales data (https://www.kaggle.com/datasets/juhi1994/superstore/data) before creating a dashboard in R Shiny for interactive analysis. The data was downloaded as the file “US Superstore data.xls” and we’ll load it into R as a tibble:\n\nsales_raw&lt;-read_excel(\"US Superstore data.xls\") |&gt; as_tibble() |&gt; rename_with(make.names) |&gt; mutate(OrderYear=year(Order.Date))"
+    "text": "In this notebook, we’ll do some static exploratory analysis of the US superstore sales data (https://www.kaggle.com/datasets/juhi1994/superstore/data) before creating a dashboard in R Shiny for interactive analysis. The data was downloaded as the file “US Superstore data.xls” and we’ll load it into R as a tibble:\n\nsales_raw&lt;-read_excel(\"US Superstore data.xls\") |&gt; as_tibble() |&gt; rename_with(make.names) |&gt; mutate(OrderYear=year(Order.Date))\n\nThis processed data has been saved as an RData file called superstore_data.rds for use in the app."
   },
   {
     "objectID": "ST558_proj2.html#data-exploration",
